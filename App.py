@@ -125,9 +125,9 @@ if page == '九州電力_従量電灯B':
         os.remove(image_path)
 
         st.write("■日本ガス_ファミリープランB_試算結果")
-        st.dataframe(df_kWh_NG_T)
+        st.table(df_kWh_NG_T)
         st.write("■九州電力_従量電灯B_試算結果")
-        st.dataframe(df_kWh_Q_T)
+        st.table(df_kWh_Q_T)
 
         image_path = main.plot_comparison_gas_graph(df_gas_NG)
         # 画像をStreamlitに表示
@@ -136,7 +136,7 @@ if page == '九州電力_従量電灯B':
         os.remove(image_path)
 
         st.write("■日本ガス_ガスセット割_試算結果")
-        st.dataframe(df_gas_NG_T)
+        st.table(df_gas_NG_T)
 
         x_1,x_2, fuel_bills_Q_1, fuel_bills_Q_2, fuel_bills_NG_1, fuel_bills_NG_2 = main.fuel_vision(fuel_chenge)
         # グラフの設定
