@@ -1,8 +1,6 @@
-from datetime import datetime,date,timedelta
-from dateutil.relativedelta import relativedelta
+from datetime import datetime,date
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 
 #日付設定
 today = datetime.today()
