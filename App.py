@@ -1,12 +1,7 @@
 import streamlit as st
 import pandas as pd
 import main
-import numpy as np
-import seaborn as sns
-import plotly.express as px
 import plotly.graph_objects as go
-import matplotlib.pyplot as plt
-import numpy as np
 import os
 
 start_menu = ['7', '8', '9', '10', '11', '12']
