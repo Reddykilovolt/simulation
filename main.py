@@ -9,6 +9,9 @@ month = today.strftime('%m')
 day = today.strftime('%d')
 non_zero_day = today.strftime('%d').lstrip("0")
 
+font_path = 'TakaoPGothic.ttf'
+font_property = FontProperties(fname=font_path)
+
 def kWh_calc(one_kWh, month):
     kWh_chenge = [1.00,1.34,1.21,0.89,0.68,0.84,1.48,1.13,0.92]
     start_index = month - 7
@@ -282,7 +285,7 @@ def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
     data11 = df_kWh_Q['激変緩和']
     data12 = df_kWh_Q['特別割']
 
-    plt.rcParams['font.family'] = 'MS Gothic'#文字化け防止
+    #plt.rcParams['font.family'] = 'MS Gothic'#文字化け防止
     bar_width = 0.35 #バーの幅
     bar_pos1 = np.arange(len(months)) #グループ1のバーの位置
     bar_pos2 = bar_pos1 + bar_width + 0.05 #グループ2のバーの位置
@@ -304,10 +307,10 @@ def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
 
     # x軸の設定
     ax.set_xticks(bar_pos1 + bar_width / 2)
-    ax.set_xticklabels(months)
+    ax.set_xticklabels(months, fontproperties=font_property)
 
     # グラフのタイトルと凡例
-    ax.set_title('日本ガスと九州電力の電気料金比較')
+    ax.set_title('日本ガスと九州電力の電気料金比較', fontproperties=font_property)
     ax.legend(bbox_to_anchor=(1, 1), loc='upper left')
 
     # グラフの0の位置に線を引く
@@ -328,7 +331,7 @@ def plot_comparison_gas_graph(df_gas_NG):
     data2 = df_gas_NG['激変緩和']
     data3 = df_gas_NG['特別割']
 
-    plt.rcParams['font.family'] = 'MS Gothic'#文字化け防止
+    #plt.rcParams['font.family'] = 'MS Gothic'#文字化け防止
     bar_width = 0.35
     bar_pos1 = np.arange(len(months)) #グループ1のバーの位置
 
@@ -339,8 +342,8 @@ def plot_comparison_gas_graph(df_gas_NG):
     ax.bar(bar_pos1, data3, width=bar_width, color='red', bottom=data2, label='特別割')
 
     # x軸の設定
-    ax.set_xticks(bar_pos1)
-    ax.set_xticklabels(months)
+    ax.set_xticks(bar_pos1, fontproperties=font_property)
+    ax.set_xticklabels(months, fontproperties=font_property)
 
     # グラフのタイトルと凡例
     ax.set_title('特別割(セット割)適用時のガス料金イメージ')
