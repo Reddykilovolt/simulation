@@ -1,0 +1,358 @@
+from datetime import datetime,date,timedelta
+from dateutil.relativedelta import relativedelta
+import matplotlib.pyplot as plt
+import numpy as np
+import os
+
+#日付設定
+today = datetime.today()
+year = today.strftime('%Y')
+month = today.strftime('%m')
+day = today.strftime('%d')
+non_zero_day = today.strftime('%d').lstrip("0")
+
+def kWh_calc(one_kWh, month):
+    kWh_chenge = [1.00,1.34,1.21,0.89,0.68,0.84,1.48,1.13,0.92]
+    start_index = month - 7
+    kWh_chenge_select = kWh_chenge[start_index]
+    kWh_chenge = [x / kWh_chenge_select for x in kWh_chenge]
+    kWh = [one_kWh * x for x in kWh_chenge]
+    kWh = kWh[start_index:]
+    kWh_sum = int(sum(kWh))
+    kWh.append(kWh_sum)
+    display_month = ['7月','8月','9月','10月','11月','12月','1月','2月','3月','合計']
+    display_month = display_month[start_index:]
+    return kWh, display_month
+
+def gas_calc(one_gas, month):
+    gas_chenge = [1.00,0.89,0.89,1.00,1.22,1.67,2.22,2.00,1.78]
+    start_index = month - 7
+    gas_chenge_select = gas_chenge[start_index]
+    gas_chenge = [x / gas_chenge_select for x in gas_chenge]
+    gas = [one_gas * x for x in gas_chenge][start_index:]
+    gas_sum = int(sum(gas))
+    gas.append(gas_sum)
+    return gas
+
+def NG_amp_price_calc(base_amp,month):
+    base_30 = 893.72
+    base_40 = 1229.32
+    base_50 = 1536.65
+    base_60 = 1843.98
+
+    base_price_cp = {
+    7:{
+        30:[0,0,0,446.86,base_30,base_30,base_30,base_30,base_30],
+        40:[0,0,0,614.66,base_40,base_40,base_40,base_40,base_40],
+        50:[0,0,0,768.32,base_50,base_50,base_50,base_50,base_50],
+        60:[0,0,0,921.99,base_60,base_60,base_60,base_60,base_60]
+        },
+    8:{
+        30:[0,0,0,base_30,base_30,base_30,base_30,base_30],
+        40:[0,0,0,base_40,base_40,base_40,base_40,base_40],
+        50:[0,0,0,base_50,base_50,base_50,base_50,base_50],
+        60:[0,0,0,base_60,base_60,base_60,base_60,base_60]
+        },
+    9:{
+        30:[base_30,base_30,base_30,base_30,base_30,base_30,base_30],
+        40:[base_40,base_40,base_40,base_40,base_40,base_40,base_40],
+        50:[base_50,base_50,base_50,base_50,base_50,base_50,base_50],
+        60:[base_60,base_60,base_60,base_60,base_60,base_60,base_60]
+        },
+    10:{
+        30:[0,0,0,base_30,base_30,base_30],
+        40:[0,0,0,base_40,base_40,base_40],
+        50:[0,0,0,base_50,base_50,base_50],
+        60:[0,0,0,base_60,base_60,base_60]
+        },
+    11:{
+        30:[0,0,0,base_30,base_30],
+        40:[0,0,0,base_40,base_40],
+        50:[0,0,0,base_50,base_50],
+        60:[0,0,0,base_60,base_60]
+        },
+    12:{
+        30:[0,0,0,base_30],
+        40:[0,0,0,base_40],
+        50:[0,0,0,base_50],
+        60:[0,0,0,base_60]
+        }
+    }
+    base_bill = base_price_cp[month][base_amp]
+    base_bill_sum = sum(base_bill)
+    base_bill.append(base_bill_sum)
+    return base_bill
+
+def Q_amp_price_calc(base_amp,month):
+    base_bill =[]
+    base_n = 31.624
+    base_n = base_n * base_amp
+    base_bill = [base_n] * 9
+    start_index = month - 7
+    base_bill = base_bill[start_index:]
+    base_bill_sum = sum(base_bill)
+    base_bill.append(base_bill_sum)
+    return base_bill
+
+def NG_kWh_set_calc(kWh, base_amp):                                                                              
+    unit_price_1 = 18.27
+    unit_price_2 = 23.88
+    unit_price_3 = 25.83
+
+    kWh_bill = []
+
+    for kWh_value in kWh:
+        if kWh_value <= 120:
+            kWh_bill.append(kWh_value * unit_price_1)
+
+        elif kWh_value <= 300:
+            kWh_bill_1 = 120 * unit_price_1
+            kWh_bill_2 = (kWh_value - 120) * unit_price_2
+            kWh_bill.append(kWh_bill_1 + kWh_bill_2)
+
+        else:
+            kWh_bill_1 = 120 * unit_price_1
+            kWh_bill_2 = (300 - 120) * unit_price_2
+            kWh_bill_3 = (kWh_value - 300) * unit_price_3
+            kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
+
+    set_per = {30: -0.005, 40: -0.02, 50: -0.02, 60: -0.03}
+    set_per = set_per[base_amp]
+    set_kWh_bill = [x * set_per for x in kWh_bill]
+    return kWh_bill, set_kWh_bill
+
+def NG_gas_set_calc(gas, gas_class):
+    base_price_1 = 753.50
+    base_price_2 = 1386.0
+    base_price_3 = 2006.4
+    base_price_4 = 6503.2
+
+    unit_price_1 = 315.21
+    unit_price_2 = 273.02
+    unit_price_3 = 252.34
+    unit_price_4 = 222.36
+
+    gas_bill = []
+
+    for gas_value in gas:
+        if gas_value <= 15:
+            gas_bill.append(base_price_1 + (gas_value * unit_price_1))
+            set_per = -0.005
+
+        elif gas_value <= 30:
+            gas_bill.append(base_price_2 + (gas_value * unit_price_2))
+            set_per = -0.015
+
+        elif gas_value <= 150:
+            gas_bill.append(base_price_3 + (gas_value * unit_price_3))
+            set_per = -0.03
+        else:
+            gas_bill.append(base_price_4 + (gas_value * unit_price_4))
+            set_per = -0.04
+
+    set_gas_bill = [x * set_per for x in gas_bill]
+    set_gas_bill = [0 for _ in set_gas_bill] if gas_class == "業務用" else set_gas_bill
+    return gas_bill, set_gas_bill
+
+def Q_kWh_set_calc(kWh, month):
+    unit_price_1 = 18.28
+    unit_price_2 = 23.88
+    unit_price_3 = 26.88
+
+    kWh_bill = []
+
+    for kWh_value in kWh:
+        if kWh_value <= 120:
+            kWh_bill.append(kWh_value * unit_price_1)
+
+        elif kWh_value <= 300:
+            kWh_bill_1 = 120 * unit_price_1
+            kWh_bill_2 = (kWh_value - 120) * unit_price_2
+            kWh_bill.append(kWh_bill_1 + kWh_bill_2)
+
+        else:
+            kWh_bill_1 = 120 * unit_price_1
+            kWh_bill_2 = (300 - 120) * unit_price_2
+            kWh_bill_3 = (kWh_value - 300) * unit_price_3
+            kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
+
+    #start_index = month - 7
+    #kWh_bill = kWh_bill[start_index:]
+
+    set_bill = [0,0,0,0,0,0,0,0,0]
+    set_bill_sum = sum(set_bill)
+    set_bill.append(set_bill_sum)
+    start_index = month - 7
+    set_bill = set_bill[start_index:]
+    return kWh_bill, set_bill
+
+def re_energy_calc(kWh, month):
+    re_energy_price = 1.40
+    re_energy_bill = [x * re_energy_price for x in kWh]
+    #start_index = month - 7
+    #re_energy_bill = re_energy_bill[start_index:]
+    return re_energy_bill
+
+def fuel_calc(kWh, month, fuel_chenge):
+    if fuel_chenge == "上昇傾向":
+        fuel_bills = [6.17, 5.5, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
+    if fuel_chenge == "変化なし":
+        fuel_bills = [6.17, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]
+    if fuel_chenge == "下降傾向":
+        fuel_bills = [6.17, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0]
+    start_index = month - 7
+    fuel_bill = fuel_bills[start_index:]
+    fuel_bill = [x * y for x, y in zip(fuel_bill, kWh)]
+    fuel_bill_sum = sum(fuel_bill)
+    fuel_bill.append(fuel_bill_sum)
+    return fuel_bill, fuel_bills
+
+def reg_fuel_calc(kWh, month, fuel_chenge):
+    if fuel_chenge == "上昇傾向":
+        fuel_bills = [1.84] * 9
+    if fuel_chenge == "変化なし":
+        fuel_bills = [1.84] * 9
+    if fuel_chenge == "下降傾向":
+        fuel_bills = [1.84] * 9
+    start_index = month - 7
+    fuel_bill = fuel_bills[start_index:]
+    fuel_bill = [x * y for x, y in zip(fuel_bill, kWh)]
+    fuel_bill_sum = sum(fuel_bill)
+    fuel_bill.append(fuel_bill_sum)
+    return fuel_bill, fuel_bills
+
+def kanwa_calc(kWh, month):
+    kanwa_bill = [-7, -7, -7, -3.5, 0, 0, 0, 0, 0]
+    start_index = month - 7
+    kanwa_bill = kanwa_bill[start_index:]
+    kanwa_bill = [x * y for x, y in zip(kanwa_bill, kWh)]
+    kanwa_bill_sum = sum(kanwa_bill)
+    kanwa_bill.append(kanwa_bill_sum)
+    return kanwa_bill
+
+def gas_kanwa_calc(gas, month):
+    gas_kanwa_bill = [-30, -30, -30, -15, 0, 0, 0, 0, 0]
+    start_index = month - 7
+    gas_kanwa_bill = gas_kanwa_bill[start_index:]
+    gas_kanwa_bill = [x * y for x, y in zip(gas_kanwa_bill, gas)]
+    gas_kanwa_bill_sum = sum(gas_kanwa_bill)
+    gas_kanwa_bill.append(gas_kanwa_bill_sum)
+    return gas_kanwa_bill
+
+def fuel_vision(fuel_chenge):
+    x_1 = ['2022/4','2022/5','2022/6','2022/7','2022/8','2022/9','2022/10','2022/11','2022/12',
+        '2023/1','2023/2','2023/3','2023/4','2023/5','2023/6']
+    x_2 = ['2023/7','2023/8','2023/9','2023/10','2023/11','2023/12',
+        '2024/1','2024/2','2024/3']
+
+    fuel_bills_Q_1 = [1.57, 1.72, 1.85, 1.92, 1.94, 1.94,
+                    1.94, 1.94, 1.94, 1.94, 1.94, 1.94,
+                    1.94, 1.94, 1.94]
+    fuel_bills_Q_2 = [1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94]
+    
+    fuel_bills_NG_1 = [1.57, 1.72, 1.85, 2.48, 3.32, 4.58,
+                    5.82, 6.77, 7.63, 8.12, 8.51, 8.19,
+                    7.55, 6.80, 6.17]
+    
+    if fuel_chenge == "上昇傾向":
+        fuel_bills_NG_2 = [6.17, 5.5, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
+    if fuel_chenge == "変化なし":
+        fuel_bills_NG_2 = [6.17, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]
+    if fuel_chenge == "下降傾向":
+        fuel_bills_NG_2 = [6.17, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0]
+    
+    return x_1,x_2, fuel_bills_Q_1, fuel_bills_Q_2, fuel_bills_NG_1, fuel_bills_NG_2
+
+def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
+    df_kWh_NG = df_kWh_NG.drop(['合計'], axis=1)
+    df_kWh_NG = df_kWh_NG.drop(['合計'], axis=0)
+    df_kWh_Q = df_kWh_Q.drop(['合計'], axis=1)
+    df_kWh_Q = df_kWh_Q.drop(['合計'], axis=0)
+
+    months = df_kWh_Q.index.tolist()
+    data1 = df_kWh_NG['基本料金']
+    data2 = df_kWh_NG['従量料金']
+    data3 = df_kWh_NG['燃調費']
+    data4 = df_kWh_NG['再エネ賦課金']
+    data5 = df_kWh_NG['激変緩和']
+    data6 = df_kWh_NG['特別割']
+
+    data7 = df_kWh_Q['基本料金']
+    data8 = df_kWh_Q['従量料金']
+    data9 = df_kWh_Q['燃調費']
+    data10 = df_kWh_Q['再エネ賦課金']
+    data11 = df_kWh_Q['激変緩和']
+    data12 = df_kWh_Q['特別割']
+
+    plt.rcParams['font.family'] = 'MS Gothic'#文字化け防止
+    bar_width = 0.35 #バーの幅
+    bar_pos1 = np.arange(len(months)) #グループ1のバーの位置
+    bar_pos2 = bar_pos1 + bar_width + 0.05 #グループ2のバーの位置
+
+    # グラフの描画
+    fig, ax = plt.subplots(figsize=(15, 6))
+    ax.bar(bar_pos1, data1, width=bar_width, color='forestgreen', label='基本料金')
+    ax.bar(bar_pos1, data2, width=bar_width, color='yellowgreen', bottom=data1, label='従量料金')
+    ax.bar(bar_pos1, data3, width=bar_width, color='darkorange', bottom=np.add(data1, data2), label='燃調費')
+    ax.bar(bar_pos1, data4, width=bar_width, color='palegreen', bottom=np.add(data1, data2, data3), label='再エネ賦課金')
+    ax.bar(bar_pos1, data5, width=bar_width, color='plum', label='激変緩和')
+    ax.bar(bar_pos1, data6, width=bar_width, color='red', bottom=data5, label='特別割')
+    ax.bar(bar_pos2, data7, width=bar_width, color='forestgreen')
+    ax.bar(bar_pos2, data8, width=bar_width, color='yellowgreen', bottom=data7)
+    ax.bar(bar_pos2, data9, width=bar_width, color='darkorange', bottom=np.add(data7, data8))
+    ax.bar(bar_pos2, data10, width=bar_width, color='palegreen', bottom=np.add(data7, data8, data9))
+    ax.bar(bar_pos2, data11, width=bar_width, color='plum')
+    ax.bar(bar_pos2, data12, width=bar_width, color='red', bottom=data11)
+
+    # x軸の設定
+    ax.set_xticks(bar_pos1 + bar_width / 2)
+    ax.set_xticklabels(months)
+
+    # グラフのタイトルと凡例
+    ax.set_title('日本ガスと九州電力の電気料金比較')
+    ax.legend(bbox_to_anchor=(1, 1), loc='upper left')
+
+    # グラフの0の位置に線を引く
+    ax.axhline(0, color='grey', linestyle='--', linewidth=1)
+
+    # グラフの表示
+    image_path = 'graph.png'
+    fig.savefig(image_path)
+
+    return image_path
+
+def plot_comparison_gas_graph(df_gas_NG):
+    df_gas_NG = df_gas_NG.drop(['合計'], axis=1)
+    df_gas_NG = df_gas_NG.drop(['合計'], axis=0)
+
+    months = df_gas_NG.index.tolist()
+    data1 = df_gas_NG['ガス料金']
+    data2 = df_gas_NG['激変緩和']
+    data3 = df_gas_NG['特別割']
+
+    plt.rcParams['font.family'] = 'MS Gothic'#文字化け防止
+    bar_width = 0.35
+    bar_pos1 = np.arange(len(months)) #グループ1のバーの位置
+
+    # グラフの描画
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.bar(bar_pos1, data1, width=bar_width, color='forestgreen', label='ガス料金')
+    ax.bar(bar_pos1, data2, width=bar_width, color='plum', label='激変緩和')
+    ax.bar(bar_pos1, data3, width=bar_width, color='red', bottom=data2, label='特別割')
+
+    # x軸の設定
+    ax.set_xticks(bar_pos1)
+    ax.set_xticklabels(months)
+
+    # グラフのタイトルと凡例
+    ax.set_title('特別割(セット割)適用時のガス料金イメージ')
+    ax.legend(bbox_to_anchor=(1, 1), loc='upper left')
+
+    # グラフの0の位置に線を引く
+    ax.axhline(0, color='grey', linestyle='--', linewidth=1)
+
+    # グラフの表示
+    image_path = 'graph.png'
+    fig.savefig(image_path)
+
+    return image_path
