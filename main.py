@@ -312,7 +312,7 @@ def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
 
     # グラフのタイトルと凡例
     ax.set_title('日本ガスと九州電力の電気料金比較', fontproperties=font_property)
-    ax.legend(bbox_to_anchor=(1, 1), loc='upper left')
+    ax.legend(bbox_to_anchor=(1, 1), loc='upper left', prop=font_property)
 
     # グラフの0の位置に線を引く
     ax.axhline(0, color='grey', linestyle='--', linewidth=1)
@@ -347,8 +347,8 @@ def plot_comparison_gas_graph(df_gas_NG):
     ax.set_xticklabels(months, fontproperties=font_property)
 
     # グラフのタイトルと凡例
-    ax.set_title('特別割(セット割)適用時のガス料金イメージ')
-    ax.legend(bbox_to_anchor=(1, 1), loc='upper left')
+    ax.set_title('特別割(セット割)適用時のガス料金イメージ', fontproperties=font_property)
+    ax.legend(bbox_to_anchor=(1, 1), loc='upper left', prop=font_property)
 
     # グラフの0の位置に線を引く
     ax.axhline(0, color='grey', linestyle='--', linewidth=1)
