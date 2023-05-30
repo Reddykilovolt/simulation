@@ -1,6 +1,7 @@
 from datetime import datetime,date
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.font_manager import FontProperties
 
 #日付設定
 today = datetime.today()
