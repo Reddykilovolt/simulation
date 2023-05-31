@@ -1,7 +1,9 @@
-from datetime import datetime,date
+import streamlit as st
+from datetime import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
+import plotly.graph_objects as go
 
 #日付設定
 today = datetime.today()
@@ -156,10 +158,10 @@ def NG_gas_set_calc(gas, gas_class):
     set_gas_bill = [0 for _ in set_gas_bill] if gas_class == "業務用" else set_gas_bill
     return gas_bill, set_gas_bill
 
-def Q_kWh_set_calc(kWh, month):
+def Q_kWh_set_calc(kWh, month, page):
     unit_price_1 = 18.28
     unit_price_2 = 23.88
-    unit_price_3 = 26.88
+    unit_price_3 = 26.88 if page == '九州電力_従量電灯B' else 25.78
 
     kWh_bill = []
 
@@ -178,10 +180,7 @@ def Q_kWh_set_calc(kWh, month):
             kWh_bill_3 = (kWh_value - 300) * unit_price_3
             kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
 
-    #start_index = month - 7
-    #kWh_bill = kWh_bill[start_index:]
-
-    set_bill = [0,0,0,0,0,0,0,0,0]
+    set_bill = [-55] * 9 if page == '九州電力_従量電灯B' else [0] * 8 + [-777]
     set_bill_sum = sum(set_bill)
     set_bill.append(set_bill_sum)
     start_index = month - 7
@@ -197,11 +196,11 @@ def re_energy_calc(kWh, month):
 
 def fuel_calc(kWh, month, fuel_chenge):
     if fuel_chenge == "上昇傾向":
-        fuel_bills = [6.17, 5.5, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
+        fuel_bills = [6.17, 5.49, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
     if fuel_chenge == "変化なし":
-        fuel_bills = [6.17, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]
+        fuel_bills = [6.17, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49]
     if fuel_chenge == "下降傾向":
-        fuel_bills = [6.17, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0]
+        fuel_bills = [6.17, 5.49, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0]
     start_index = month - 7
     fuel_bill = fuel_bills[start_index:]
     fuel_bill = [x * y for x, y in zip(fuel_bill, kWh)]
@@ -241,29 +240,41 @@ def gas_kanwa_calc(gas, month):
     gas_kanwa_bill.append(gas_kanwa_bill_sum)
     return gas_kanwa_bill
 
-def fuel_vision(fuel_chenge):
+def fuel_vision(fuel_chenge, page):
     x_1 = ['2022/4','2022/5','2022/6','2022/7','2022/8','2022/9','2022/10','2022/11','2022/12',
-        '2023/1','2023/2','2023/3','2023/4','2023/5','2023/6']
-    x_2 = ['2023/7','2023/8','2023/9','2023/10','2023/11','2023/12',
-        '2024/1','2024/2','2024/3']
+        '2023/1','2023/2','2023/3','2023/4','2023/5','2023/6', '2023/7']
+    x_2 = ['2023/8','2023/9','2023/10','2023/11','2023/12','2024/1','2024/2','2024/3']
 
     fuel_bills_Q_1 = [1.57, 1.72, 1.85, 1.92, 1.94, 1.94,
                     1.94, 1.94, 1.94, 1.94, 1.94, 1.94,
-                    1.94, 1.94, 1.94]
-    fuel_bills_Q_2 = [1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94]
+                    1.94, 1.94, 1.94, 1.94]
+    fuel_bills_Q_2 = [1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94, 1.94]
     
     fuel_bills_NG_1 = [1.57, 1.72, 1.85, 2.48, 3.32, 4.58,
                     5.82, 6.77, 7.63, 8.12, 8.51, 8.19,
-                    7.55, 6.80, 6.17]
+                    7.55, 6.80, 6.17, 5.49]
     
     if fuel_chenge == "上昇傾向":
-        fuel_bills_NG_2 = [6.17, 5.5, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
+        fuel_bills_NG_2 = [5.49, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
     if fuel_chenge == "変化なし":
-        fuel_bills_NG_2 = [6.17, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0, 6.0]
+        fuel_bills_NG_2 = [5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49]
     if fuel_chenge == "下降傾向":
-        fuel_bills_NG_2 = [6.17, 5.5, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0]
+        fuel_bills_NG_2 = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 2.0]
     
-    return x_1,x_2, fuel_bills_Q_1, fuel_bills_Q_2, fuel_bills_NG_1, fuel_bills_NG_2
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=x_1, y=fuel_bills_NG_1, mode='lines', line=dict(color='blue'), name='日本ガス_過去実績'))
+    fig.add_trace(go.Scatter(x=x_2, y=fuel_bills_NG_2, mode='lines', line=dict(color='blue',dash='dot'), name='日本ガス_今後の推移予測'))
+    fig.add_trace(go.Scatter(x=x_1,
+                            y=fuel_bills_Q_1 if page == '九州電力_従量電灯B' else fuel_bills_NG_1,
+                            mode='lines', line=dict(color='red'), name='九州電力_過去実績'))
+    fig.add_trace(go.Scatter(x=x_2,
+                            y=fuel_bills_Q_2 if page == '九州電力_従量電灯B' else fuel_bills_NG_2,
+                            mode='lines', line=dict(color='red',dash='dot'), name='九州電力_今後の推移予測'))
+    fig.update_layout(xaxis_title='月', yaxis_title='燃調費[円/kWh]',
+                    font=dict(family='TakaoPGothic', size=12, color='black')
+                    )
+    # グラフを表示
+    st.plotly_chart(fig, static_fonts=True)    
 
 def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
     df_kWh_NG = df_kWh_NG.drop(['合計'], axis=1)
@@ -308,10 +319,10 @@ def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
 
     # x軸の設定
     ax.set_xticks(bar_pos1 + bar_width / 2)
-    ax.set_xticklabels(months, fontproperties=font_property)
+    ax.set_xticklabels(months, fontproperties=font_property, fontsize=15)
 
     # グラフのタイトルと凡例
-    ax.set_title('日本ガスと九州電力の電気料金比較', fontproperties=font_property)
+    ax.set_title('日本ガスと九州電力の電気料金比較', fontproperties=font_property, fontsize=20)
     ax.legend(bbox_to_anchor=(1, 1), loc='upper left', prop=font_property)
 
     # グラフの0の位置に線を引く
@@ -344,10 +355,10 @@ def plot_comparison_gas_graph(df_gas_NG):
 
     # x軸の設定
     ax.set_xticks(bar_pos1, fontproperties=font_property)
-    ax.set_xticklabels(months, fontproperties=font_property)
+    ax.set_xticklabels(months, fontproperties=font_property, fontsize=15)
 
     # グラフのタイトルと凡例
-    ax.set_title('特別割(セット割)適用時のガス料金イメージ', fontproperties=font_property)
+    ax.set_title('特別割(セット割)適用時のガス料金イメージ', fontproperties=font_property, fontsize=20)
     ax.legend(bbox_to_anchor=(1, 1), loc='upper left', prop=font_property)
 
     # グラフの0の位置に線を引く
@@ -358,3 +369,4 @@ def plot_comparison_gas_graph(df_gas_NG):
     fig.savefig(image_path)
 
     return image_path
+
