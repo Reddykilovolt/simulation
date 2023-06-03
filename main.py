@@ -15,6 +15,7 @@ non_zero_day = today.strftime('%d').lstrip("0")
 font_path = 'TakaoPGothic.ttf'
 font_property = FontProperties(fname=font_path)
 
+#kWhを1カ月単位から任意の期間のkWhを算出する
 def kWh_calc(one_kWh, month):
     kWh_chenge = [1.00,1.34,1.21,0.89,0.68,0.84,1.48,1.13,0.92]
     start_index = month - 7
@@ -28,6 +29,7 @@ def kWh_calc(one_kWh, month):
     display_month = display_month[start_index:]
     return kWh, display_month
 
+#㎥を1カ月単位から任意の期間の㎥を算出する
 def gas_calc(one_gas, month):
     gas_chenge = [1.00,0.89,0.89,1.00,1.22,1.67,2.22,2.00,1.78]
     start_index = month - 7
@@ -38,6 +40,7 @@ def gas_calc(one_gas, month):
     gas.append(gas_sum)
     return gas
 
+#日本ガスファミリープランの基本料金算出
 def NG_amp_price_calc(base_amp,month):
     base_30 = 893.72
     base_40 = 1229.32
@@ -87,6 +90,18 @@ def NG_amp_price_calc(base_amp,month):
     base_bill.append(base_bill_sum)
     return base_bill
 
+#日本ガスビジネスプランプランの基本料金算出
+def NG_kVA_price_calc(kVA, month):
+    kVA_list = []
+    kVA = 307.33 * kVA
+    kVA_list = [kVA] * 9
+    start_index = month - 7
+    kVA_list = kVA_list[start_index:]
+    kVA_sum = sum(kVA_list)
+    kVA_list.append(kVA_sum)
+    return kVA_list
+
+#九電従電B及びSFPの基本料金算出
 def Q_amp_price_calc(base_amp,month):
     base_bill =[]
     base_n = 31.624
@@ -98,6 +113,18 @@ def Q_amp_price_calc(base_amp,month):
     base_bill.append(base_bill_sum)
     return base_bill
 
+#九電従電C及びSBPの基本料金算出
+def Q_kVA_price_calc(kVA, month):
+    kVA_list = []
+    kVA = 316.24 * kVA
+    kVA_list = [kVA] * 9
+    start_index = month - 7
+    kVA_list = kVA_list[start_index:]
+    kVA_sum = sum(kVA_list)
+    kVA_list.append(kVA_sum)
+    return kVA_list
+
+#日本ガスファミリープランの従量料金、セット割算出
 def NG_kWh_set_calc(kWh, base_amp):                                                                              
     unit_price_1 = 18.27
     unit_price_2 = 23.88
@@ -125,39 +152,74 @@ def NG_kWh_set_calc(kWh, base_amp):
     set_kWh_bill = [x * set_per for x in kWh_bill]
     return kWh_bill, set_kWh_bill
 
+#日本ガスビジネスプランの従量料金、セット割算出
+def NG_kVA_set_calc(kWh):                                                                              
+    unit_price_1 = 18.27
+    unit_price_2 = 23.88
+    unit_price_3 = 25.02
+
+    kWh_bill = []
+
+    for kWh_value in kWh:
+        if kWh_value <= 120:
+            kWh_bill.append(kWh_value * unit_price_1)
+
+        elif kWh_value <= 300:
+            kWh_bill_1 = 120 * unit_price_1
+            kWh_bill_2 = (kWh_value - 120) * unit_price_2
+            kWh_bill.append(kWh_bill_1 + kWh_bill_2)
+
+        else:
+            kWh_bill_1 = 120 * unit_price_1
+            kWh_bill_2 = (300 - 120) * unit_price_2
+            kWh_bill_3 = (kWh_value - 300) * unit_price_3
+            kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
+
+    set_per = -0.03
+    set_kWh_bill = [x * set_per for x in kWh_bill]
+    return kWh_bill, set_kWh_bill
+
+#日本ガスガス料金の算出及びセット割計算
 def NG_gas_set_calc(gas, gas_class):
     base_price_1 = 753.50
     base_price_2 = 1386.0
     base_price_3 = 2006.4
     base_price_4 = 6503.2
 
-    unit_price_1 = 315.21
-    unit_price_2 = 273.02
-    unit_price_3 = 252.34
-    unit_price_4 = 222.36
+    unit_price_1 = 260.98
+    unit_price_2 = 218.79
+    unit_price_3 = 198.11
+    unit_price_4 = 168.13
 
     gas_bill = []
+    set_gas_bill = []
 
     for gas_value in gas:
         if gas_value <= 15:
-            gas_bill.append(base_price_1 + (gas_value * unit_price_1))
-            set_per = -0.005
+            _gas_bill = base_price_1 + (gas_value * unit_price_1)
+            gas_bill.append(_gas_bill)
+            set_gas_bill.append(-0.005 * _gas_bill)
 
         elif gas_value <= 30:
-            gas_bill.append(base_price_2 + (gas_value * unit_price_2))
-            set_per = -0.015
+            _gas_bill = base_price_2 + (gas_value * unit_price_2)
+            gas_bill.append(_gas_bill)
+            set_gas_bill.append(-0.015 * _gas_bill)
 
         elif gas_value <= 150:
-            gas_bill.append(base_price_3 + (gas_value * unit_price_3))
-            set_per = -0.03
-        else:
-            gas_bill.append(base_price_4 + (gas_value * unit_price_4))
-            set_per = -0.04
+            _gas_bill = base_price_3 + (gas_value * unit_price_3)
+            gas_bill.append(_gas_bill)
+            set_gas_bill.append(-0.03 * _gas_bill)
 
-    set_gas_bill = [x * set_per for x in gas_bill]
+        else:
+            _gas_bill = base_price_4 + (gas_value * unit_price_4)
+            gas_bill.append(_gas_bill)
+            set_per = -0.04
+            set_gas_bill.append(-0.04 * _gas_bill)
+
     set_gas_bill = [0 for _ in set_gas_bill] if gas_class == "業務用" else set_gas_bill
     return gas_bill, set_gas_bill
 
+#九電従電B及びSFPの従量料金、特別割割引の算出
 def Q_kWh_set_calc(kWh, month, page):
     unit_price_1 = 18.28
     unit_price_2 = 23.88
@@ -187,6 +249,45 @@ def Q_kWh_set_calc(kWh, month, page):
     set_bill = set_bill[start_index:]
     return kWh_bill, set_bill
 
+#九電従電C及びSBPの従量料金の算出
+def Q_kVA_set_calc(kWh, month, page):
+    if page == '九州電力_従量電灯C':
+        unit_price_1 = 18.28
+        unit_price_2 = 23.88
+        unit_price_3 = 26.88
+
+        kWh_bill = []
+
+        for kWh_value in kWh:
+            if kWh_value <= 120:
+                kWh_bill.append(kWh_value * unit_price_1)
+
+            elif kWh_value <= 300:
+                kWh_bill_1 = 120 * unit_price_1
+                kWh_bill_2 = (kWh_value - 120) * unit_price_2
+                kWh_bill.append(kWh_bill_1 + kWh_bill_2)
+
+            else:
+                kWh_bill_1 = 120 * unit_price_1
+                kWh_bill_2 = (300 - 120) * unit_price_2
+                kWh_bill_3 = (kWh_value - 300) * unit_price_3
+                kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
+    else:
+        unit_price = 23.88
+
+        kWh_bill = []
+
+        for kWh_value in kWh:
+            kWh_bill.append(kWh_value * unit_price)
+
+    set_bill = [-55] * 9 if page == '九州電力_従量電灯C' else [0] * 9
+    set_bill_sum = sum(set_bill)
+    set_bill.append(set_bill_sum)
+    start_index = month - 7
+    set_bill = set_bill[start_index:]
+    return kWh_bill, set_bill
+
+#再エネ賦課金の算出
 def re_energy_calc(kWh, month):
     re_energy_price = 1.40
     re_energy_bill = [x * re_energy_price for x in kWh]
@@ -194,6 +295,7 @@ def re_energy_calc(kWh, month):
     #re_energy_bill = re_energy_bill[start_index:]
     return re_energy_bill
 
+#燃調費の算出(自由料金)
 def fuel_calc(kWh, month, fuel_chenge):
     if fuel_chenge == "上昇傾向":
         fuel_bills = [6.17, 5.49, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
@@ -208,6 +310,7 @@ def fuel_calc(kWh, month, fuel_chenge):
     fuel_bill.append(fuel_bill_sum)
     return fuel_bill, fuel_bills
 
+#燃調費の算出(規制料金)
 def reg_fuel_calc(kWh, month, fuel_chenge):
     if fuel_chenge == "上昇傾向":
         fuel_bills = [1.84] * 9
@@ -222,6 +325,7 @@ def reg_fuel_calc(kWh, month, fuel_chenge):
     fuel_bill.append(fuel_bill_sum)
     return fuel_bill, fuel_bills
 
+#激変緩和(電気)の算出
 def kanwa_calc(kWh, month):
     kanwa_bill = [-7, -7, -7, -3.5, 0, 0, 0, 0, 0]
     start_index = month - 7
@@ -231,6 +335,7 @@ def kanwa_calc(kWh, month):
     kanwa_bill.append(kanwa_bill_sum)
     return kanwa_bill
 
+#激変緩和(ガス)の算出
 def gas_kanwa_calc(gas, month):
     gas_kanwa_bill = [-30, -30, -30, -15, 0, 0, 0, 0, 0]
     start_index = month - 7
@@ -240,6 +345,7 @@ def gas_kanwa_calc(gas, month):
     gas_kanwa_bill.append(gas_kanwa_bill_sum)
     return gas_kanwa_bill
 
+#燃調費の傾向
 def fuel_vision(fuel_chenge, page):
     x_1 = ['2022/4','2022/5','2022/6','2022/7','2022/8','2022/9','2022/10','2022/11','2022/12',
         '2023/1','2023/2','2023/3','2023/4','2023/5','2023/6', '2023/7']
@@ -276,6 +382,7 @@ def fuel_vision(fuel_chenge, page):
     # グラフを表示
     st.plotly_chart(fig, static_fonts=True)    
 
+#電気料金比較のグラフ
 def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
     df_kWh_NG = df_kWh_NG.drop(['合計'], axis=1)
     df_kWh_NG = df_kWh_NG.drop(['合計'], axis=0)
@@ -334,6 +441,7 @@ def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
 
     return image_path
 
+#ガス料金比較のグラフ
 def plot_comparison_gas_graph(df_gas_NG):
     df_gas_NG = df_gas_NG.drop(['合計'], axis=1)
     df_gas_NG = df_gas_NG.drop(['合計'], axis=0)
