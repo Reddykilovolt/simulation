@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime
+import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
@@ -17,7 +18,7 @@ font_property = FontProperties(fname=font_path)
 
 #kWhを1カ月単位から任意の期間のkWhを算出する
 def kWh_calc(one_kWh, month):
-    kWh_chenge = [1.00,1.34,1.21,0.89,0.68,0.84,1.48,1.13,0.92]
+    kWh_chenge = [1.00,1.25,1.17,0.91,0.86,0.99,1.43,1.31,1.12]
     start_index = month - 7
     kWh_chenge_select = kWh_chenge[start_index]
     kWh_chenge = [x / kWh_chenge_select for x in kWh_chenge]
@@ -94,12 +95,38 @@ def NG_amp_price_calc(base_amp,month):
 def NG_kVA_price_calc(kVA, month):
     kVA_list = []
     kVA = 307.33 * kVA
-    kVA_list = [kVA] * 9
-    start_index = month - 7
-    kVA_list = kVA_list[start_index:]
+    kVA_2 = kVA / 2
+
+    base_price_cp = {
+    7:[0,0,0,kVA_2,kVA,kVA,kVA,kVA,kVA],
+    8:[0,0,0,kVA,kVA,kVA,kVA,kVA],
+    9:[kVA,kVA,kVA,kVA,kVA,kVA,kVA],
+    10:[0,0,0,kVA,kVA,kVA],
+    11:[0,0,0,kVA,kVA],
+    12:[0,0,0,kVA]
+    }
+    kVA_list = base_price_cp[month]
     kVA_sum = sum(kVA_list)
     kVA_list.append(kVA_sum)
     return kVA_list
+
+#日本ガス低圧電力の基本料金算出
+def NG_kW_price_calc(kW, month):
+    kW_list = []
+    kW = 922.03 * kW
+    kW_2 = kW / 2    
+    base_price_cp = {
+    7:[kW_2,kW_2,kW_2,kW_2,kW,kW,kW,kW,kW],
+    8:[kW_2,kW_2,kW_2,kW,kW,kW,kW,kW],
+    9:[kW_2,kW_2,kW,kW,kW,kW,kW],
+    10:[kW_2,kW,kW,kW,kW,kW],
+    11:[kW,kW,kW,kW,kW],
+    12:[kW,kW,kW,kW]
+    }
+    kW_list = base_price_cp[month]
+    kW_sum = sum(kW_list)
+    kW_list.append(kW_sum)
+    return kW_list
 
 #九電従電B及びSFPの基本料金算出
 def Q_amp_price_calc(base_amp,month):
@@ -124,6 +151,17 @@ def Q_kVA_price_calc(kVA, month):
     kVA_list.append(kVA_sum)
     return kVA_list
 
+#九電低圧電力の基本料金算出
+def Q_kW_price_calc(kW, month):
+    kW_list = []
+    kW = 1023.23 * kW
+    kW_list = [kW] * 9
+    start_index = month - 7
+    kW_list = kW_list[start_index:]
+    kW_sum = sum(kW_list)
+    kW_list.append(kW_sum)
+    return kW_list
+
 #日本ガスファミリープランの従量料金、セット割算出
 def NG_kWh_set_calc(kWh, base_amp):                                                                              
     unit_price_1 = 18.27
@@ -131,6 +169,7 @@ def NG_kWh_set_calc(kWh, base_amp):
     unit_price_3 = 25.83
 
     kWh_bill = []
+    kWh = kWh[:-1]
 
     for kWh_value in kWh:
         if kWh_value <= 120:
@@ -146,7 +185,8 @@ def NG_kWh_set_calc(kWh, base_amp):
             kWh_bill_2 = (300 - 120) * unit_price_2
             kWh_bill_3 = (kWh_value - 300) * unit_price_3
             kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
-
+    kWh_bill_sum = int(sum(kWh_bill))
+    kWh_bill.append(kWh_bill_sum)
     set_per = {30: -0.005, 40: -0.02, 50: -0.02, 60: -0.03}
     set_per = set_per[base_amp]
     set_kWh_bill = [x * set_per for x in kWh_bill]
@@ -159,6 +199,7 @@ def NG_kVA_set_calc(kWh):
     unit_price_3 = 25.02
 
     kWh_bill = []
+    kWh = kWh[:-1]
 
     for kWh_value in kWh:
         if kWh_value <= 120:
@@ -174,10 +215,31 @@ def NG_kVA_set_calc(kWh):
             kWh_bill_2 = (300 - 120) * unit_price_2
             kWh_bill_3 = (kWh_value - 300) * unit_price_3
             kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
-
+    kWh_bill_sum = int(sum(kWh_bill))
+    kWh_bill.append(kWh_bill_sum)
     set_per = -0.03
     set_kWh_bill = [x * set_per for x in kWh_bill]
     return kWh_bill, set_kWh_bill
+
+#日本ガス低圧電力の従量料金算出
+def NG_kW_set_calc(kWh):                                                                              
+    unit_price_summer = 17.26
+    unit_price_other = 15.58
+
+    kWh_bill = []
+    kWh = kWh[:-1]
+
+    if month == '7'or'8'or'9':
+        for kWh_value in kWh:
+                kWh_bill.append(kWh_value * unit_price_summer)
+    else:
+        kWh_bill = kWh * unit_price_other
+        for kWh_value in kWh:
+                kWh_bill.append(kWh_value * unit_price_summer)
+    
+    kWh_bill_sum = int(sum(kWh_bill))
+    kWh_bill.append(kWh_bill_sum)
+    return kWh_bill
 
 #日本ガスガス料金の算出及びセット割計算
 def NG_gas_set_calc(gas, gas_class):
@@ -193,6 +255,8 @@ def NG_gas_set_calc(gas, gas_class):
 
     gas_bill = []
     set_gas_bill = []
+    
+    gas = gas[:-1]
 
     for gas_value in gas:
         if gas_value <= 15:
@@ -215,6 +279,10 @@ def NG_gas_set_calc(gas, gas_class):
             gas_bill.append(_gas_bill)
             set_per = -0.04
             set_gas_bill.append(-0.04 * _gas_bill)
+    gas_bill_sum = int(sum(gas_bill))
+    gas_bill.append(gas_bill_sum)
+    set_gas_bill_sum = int(sum(set_gas_bill))
+    set_gas_bill.append(set_gas_bill_sum)
 
     set_gas_bill = [0 for _ in set_gas_bill] if gas_class == "業務用" else set_gas_bill
     return gas_bill, set_gas_bill
@@ -226,6 +294,7 @@ def Q_kWh_set_calc(kWh, month, page):
     unit_price_3 = 26.88 if page == '九州電力_従量電灯B' else 25.78
 
     kWh_bill = []
+    kWh = kWh[:-1]
 
     for kWh_value in kWh:
         if kWh_value <= 120:
@@ -241,6 +310,9 @@ def Q_kWh_set_calc(kWh, month, page):
             kWh_bill_2 = (300 - 120) * unit_price_2
             kWh_bill_3 = (kWh_value - 300) * unit_price_3
             kWh_bill.append(kWh_bill_1 + kWh_bill_2 + kWh_bill_3)
+    
+    kWh_bill_sum = int(sum(kWh_bill))
+    kWh_bill.append(kWh_bill_sum)
 
     set_bill = [-55] * 9 if page == '九州電力_従量電灯B' else [0] * 8 + [-777]
     set_bill_sum = sum(set_bill)
@@ -257,7 +329,8 @@ def Q_kVA_set_calc(kWh, month, page):
         unit_price_3 = 26.88
 
         kWh_bill = []
-
+        kWh = kWh[:-1]
+        
         for kWh_value in kWh:
             if kWh_value <= 120:
                 kWh_bill.append(kWh_value * unit_price_1)
@@ -280,12 +353,36 @@ def Q_kVA_set_calc(kWh, month, page):
         for kWh_value in kWh:
             kWh_bill.append(kWh_value * unit_price)
 
+    kWh_bill_sum = int(sum(kWh_bill))
+    kWh_bill.append(kWh_bill_sum)
+
     set_bill = [-55] * 9 if page == '九州電力_従量電灯C' else [0] * 9
-    set_bill_sum = sum(set_bill)
-    set_bill.append(set_bill_sum)
     start_index = month - 7
     set_bill = set_bill[start_index:]
+    set_bill_sum = sum(set_bill)
+    set_bill.append(set_bill_sum)    
     return kWh_bill, set_bill
+
+#九州電力低圧電力の従量料金算出
+def Q_kW_set_calc(kWh):                                                                              
+    unit_price_summer = 17.27
+    unit_price_other = 15.58
+
+    kWh_bill = []
+    kWh = kWh[:-1]
+
+    if month == '7'or'8'or'9':
+        for kWh_value in kWh:
+                kWh_bill.append(kWh_value * unit_price_summer)
+    else:
+        kWh_bill = kWh * unit_price_other
+        for kWh_value in kWh:
+                kWh_bill.append(kWh_value * unit_price_summer)
+
+    kWh_bill_sum = int(sum(kWh_bill))
+    kWh_bill.append(kWh_bill_sum)    
+
+    return kWh_bill
 
 #再エネ賦課金の算出
 def re_energy_calc(kWh, month):
@@ -383,7 +480,7 @@ def fuel_vision(fuel_chenge, page):
     st.plotly_chart(fig, static_fonts=True)    
 
 #電気料金比較のグラフ
-def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
+def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q, page):
     df_kWh_NG = df_kWh_NG.drop(['合計'], axis=1)
     df_kWh_NG = df_kWh_NG.drop(['合計'], axis=0)
     df_kWh_Q = df_kWh_Q.drop(['合計'], axis=1)
@@ -395,14 +492,20 @@ def plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q):
     data3 = df_kWh_NG['燃調費']
     data4 = df_kWh_NG['再エネ賦課金']
     data5 = df_kWh_NG['激変緩和']
-    data6 = df_kWh_NG['特別割']
+    if page == '九州電力_低圧動力':
+        data6 = 0 
+    else:
+        data6 = df_kWh_NG['特別割'] 
 
     data7 = df_kWh_Q['基本料金']
     data8 = df_kWh_Q['従量料金']
     data9 = df_kWh_Q['燃調費']
     data10 = df_kWh_Q['再エネ賦課金']
     data11 = df_kWh_Q['激変緩和']
-    data12 = df_kWh_Q['特別割']
+    if page == '九州電力_低圧動力':
+        data12 = 0 
+    else:
+        data12 = df_kWh_Q['特別割']
 
     #plt.rcParams['font.family'] = 'MS Gothic'#文字化け防止
     bar_width = 0.35 #バーの幅
@@ -466,7 +569,7 @@ def plot_comparison_gas_graph(df_gas_NG):
     ax.set_xticklabels(months, fontproperties=font_property, fontsize=15)
 
     # グラフのタイトルと凡例
-    ax.set_title('特別割(セット割)適用時のガス料金イメージ', fontproperties=font_property, fontsize=20)
+    ax.set_title('特別割(セット割)適用時のガス料金', fontproperties=font_property, fontsize=20)
     ax.legend(bbox_to_anchor=(1, 1), loc='upper left', prop=font_property)
 
     # グラフの0の位置に線を引く
@@ -477,4 +580,63 @@ def plot_comparison_gas_graph(df_gas_NG):
     fig.savefig(image_path)
 
     return image_path
+
+def plot_comparison_total_graph(df_kWh_NG_T, df_kWh_Q_T, df_gas_NG_T, display_month):
+    kWh_NG_sum_display = []
+    kWh_Q_sum_display = []
+    gas_NG_sum_display = []
+    gas_Q_sum_display = []
+    for month in display_month:
+        kWh_NG_sum_display.append(df_kWh_NG_T.loc['合計', month])
+        kWh_Q_sum_display.append(df_kWh_Q_T.loc['合計', month])
+        gas_NG_sum_display.append(df_gas_NG_T.loc['合計', month] + df_gas_NG_T.loc['特別割', month])
+        gas_Q_sum_display.append(df_gas_NG_T.loc['合計', month])
+
+    kWhgas_NG_sum_display = [x + y for x, y in zip(kWh_NG_sum_display, gas_NG_sum_display)]
+    kWhgas_Q_sum_display = [x + y for x, y in zip(kWh_Q_sum_display, gas_Q_sum_display)]
+
+    data_total_NG = {
+        'でんき料金(切替前)': kWh_Q_sum_display,
+        'でんき料金(切替後)': kWh_NG_sum_display,
+        'ガス料金(切替前)': gas_Q_sum_display,
+        'ガス料金(切替後)': gas_NG_sum_display,
+        'ガスでんき料金(切替前)': kWhgas_Q_sum_display,
+        'ガスでんき料金(切替後)': kWhgas_NG_sum_display
+    }
+    df_total = pd.DataFrame(data_total_NG, index=display_month)
+
+    months = display_month[:-1]  # 最後の要素"合計"を除く
+    data1 = kWh_NG_sum_display[:-1]  # 最後の要素"合計"を除く
+    data2 = gas_NG_sum_display[:-1]  # 最後の要素"合計"を除く
+
+    data3 = kWh_Q_sum_display[:-1]  # 最後の要素"合計"を除く
+    data4 = gas_Q_sum_display[:-1]  # 最後の要素"合計"を除く
+
+    bar_width = 0.35  # バーの幅
+    bar_pos1 = np.arange(len(months))  # グループ1のバーの位置
+    bar_pos2 = bar_pos1 + bar_width + 0.05  # グループ2のバーの位置
+
+    # グラフの描画
+    fig, ax = plt.subplots(figsize=(16, 6))
+    ax.bar(bar_pos1, data1, width=bar_width, color='gold', label='電気料金(切替後)')
+    ax.bar(bar_pos1, data2, width=bar_width, color='darkcyan', bottom=data1, label='ガス料金(切替後)')
+    ax.bar(bar_pos2, data3, width=bar_width, color='gold', label='電気料金(切替前)')
+    ax.bar(bar_pos2, data4, width=bar_width, color='darkcyan', bottom=data3, label='ガス料金(切替前)')
+
+    # x軸の設定
+    ax.set_xticks(bar_pos1 + bar_width / 2, fontproperties=font_property)
+    ax.set_xticklabels(months, fontsize=15, fontproperties=font_property)
+
+    # グラフのタイトルと凡例
+    ax.set_title('ガスでんき料金合算比較', fontsize=20, fontproperties=font_property)
+    ax.legend(bbox_to_anchor=(1, 1), loc='upper left', prop=font_property)
+
+    # グラフの0の位置に線を引く
+    ax.axhline(0, color='grey', linestyle='--', linewidth=1)
+
+    # グラフの表示
+    image_path = 'graph.png'
+    fig.savefig(image_path)
+
+    return image_path, df_total
 
