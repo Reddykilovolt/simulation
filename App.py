@@ -283,6 +283,13 @@ if page == '九州電力_スマートファミリープランB':
         st.write(df_gas_NG_T)
         st.write('<p style="font-size: 12px; margin-top: -20px;">※特別割 = 日本ガスセット割(ガス)</p>', unsafe_allow_html=True)
         
+        st.write("■ガスでんき料金合算_試算結果")
+        image_path, df_total = main.plot_comparison_total_graph(df_kWh_NG_T, df_kWh_Q_T, df_gas_NG_T, display_month)
+        st.image(image_path)# 画像をStreamlitに表示
+        os.remove(image_path)# 一時的なファイルなので削除
+        df_total_T = df_total.T
+        st.write(df_total_T)
+
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
 
@@ -417,6 +424,13 @@ if page == '九州電力_従量電灯C':
         st.write(df_gas_NG_T)
         st.write('<p style="font-size: 12px; margin-top: -20px;">※特別割 = 日本ガスセット割(ガス)</p>', unsafe_allow_html=True)
         
+        st.write("■ガスでんき料金合算_試算結果")
+        image_path, df_total = main.plot_comparison_total_graph(df_kWh_NG_T, df_kWh_Q_T, df_gas_NG_T, display_month)
+        st.image(image_path)# 画像をStreamlitに表示
+        os.remove(image_path)# 一時的なファイルなので削除
+        df_total_T = df_total.T
+        st.write(df_total_T)
+
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
 
@@ -551,6 +565,13 @@ if page == '九州電力_スマートビジネスプランC':
         st.write(df_gas_NG_T)
         st.write('<p style="font-size: 12px; margin-top: -20px;">※特別割 = 日本ガスセット割(ガス)</p>', unsafe_allow_html=True)
         
+        st.write("■ガスでんき料金合算_試算結果")
+        image_path, df_total = main.plot_comparison_total_graph(df_kWh_NG_T, df_kWh_Q_T, df_gas_NG_T, display_month)
+        st.image(image_path)# 画像をStreamlitに表示
+        os.remove(image_path)# 一時的なファイルなので削除
+        df_total_T = df_total.T
+        st.write(df_total_T)
+
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
 
