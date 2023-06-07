@@ -4,7 +4,7 @@ import main
 import os
 import time
 
-plan_menu =['九州電力_従量電灯B','九州電力_スマートファミリープランB','九州電力_従量電灯C','九州電力_スマートビジネスプランC']
+plan_menu =['九州電力_従量電灯B','九州電力_スマートファミリープランB','九州電力_従量電灯C','九州電力_スマートビジネスプランC','九州電力_低圧動力']
 start_menu = ['7', '8', '9', '10', '11', '12']
 fuel_menu = ['下降傾向','変化なし','上昇傾向']
 class_menu = ['一般用','業務用']
@@ -50,20 +50,20 @@ if page == '九州電力_従量電灯B':
         df_kWh_NG = df_kWh_NG.astype(int)
         df_kWh_NG_T = df_kWh_NG.T
 
-        base_bill = main.Q_amp_price_calc(int(base_amp),int(month))
-        kWh_bill, set_bill = main.Q_kWh_set_calc(kWh, int(month), page)
+        base_bill_Q = main.Q_amp_price_calc(int(base_amp),int(month))
+        kWh_bill_Q, set_bill_Q = main.Q_kWh_set_calc(kWh, int(month), page)
         re_energy_bill = main.re_energy_calc(kWh, int(month))
         fuel_bill_Q, fuel_bills_Q = main.reg_fuel_calc(kWh, int(month), fuel_chenge)
-        kanwa_bill = main.kanwa_calc(kWh, int(month))
+        kanwa_bill_Q = main.kanwa_calc(kWh, int(month))
         
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
-            '基本料金': base_bill,
-            '従量料金': kWh_bill,
-            '特別割': set_bill,
+            '基本料金': base_bill_Q,
+            '従量料金': kWh_bill_Q,
+            '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill
+            '激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -184,20 +184,20 @@ if page == '九州電力_スマートファミリープランB':
         df_kWh_NG = df_kWh_NG.astype(int)
         df_kWh_NG_T = df_kWh_NG.T
 
-        base_bill = main.Q_amp_price_calc(int(base_amp),int(month))
-        kWh_bill, set_bill = main.Q_kWh_set_calc(kWh, int(month), page)
+        base_bill_Q = main.Q_amp_price_calc(int(base_amp),int(month))
+        kWh_bill_Q, set_bill_Q = main.Q_kWh_set_calc(kWh, int(month), page)
         re_energy_bill = main.re_energy_calc(kWh, int(month))
         fuel_bill_Q, fuel_bills_Q = main.fuel_calc(kWh, int(month), fuel_chenge)
-        kanwa_bill = main.kanwa_calc(kWh, int(month))
+        kanwa_bill_Q = main.kanwa_calc(kWh, int(month))
         
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
-            '基本料金': base_bill,
-            '従量料金': kWh_bill,
-            '特別割': set_bill,
+            '基本料金': base_bill_Q,
+            '従量料金': kWh_bill_Q,
+            '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill
+            '激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -318,20 +318,20 @@ if page == '九州電力_従量電灯C':
         df_kWh_NG = df_kWh_NG.astype(int)
         df_kWh_NG_T = df_kWh_NG.T
 
-        base_bill = main.Q_kVA_price_calc(int(base_amp),int(month))
-        kWh_bill, set_bill = main.Q_kVA_set_calc(kWh, int(month), page)
+        base_bill_Q = main.Q_kVA_price_calc(int(base_amp),int(month))
+        kWh_bill_Q, set_bill_Q = main.Q_kVA_set_calc(kWh, int(month), page)
         re_energy_bill = main.re_energy_calc(kWh, int(month))
         fuel_bill_Q, fuel_bills_Q = main.reg_fuel_calc(kWh, int(month), fuel_chenge)
-        kanwa_bill = main.kanwa_calc(kWh, int(month))
+        kanwa_bill_Q = main.kanwa_calc(kWh, int(month))
         
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
-            '基本料金': base_bill,
-            '従量料金': kWh_bill,
-            '特別割': set_bill,
+            '基本料金': base_bill_Q,
+            '従量料金': kWh_bill_Q,
+            '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill
+            '激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -425,8 +425,6 @@ if page == '九州電力_スマートビジネスプランC':
         one_gas = st.number_input('供給開始月のガス使用量(㎥)', min_value=5, max_value=200, value = 20, step=5, key='B2')
         gas_class = st.selectbox('ガス用途', class_menu, key='C3')
 
-    submit_button = st.button('実行')
-
     if submit_button:
         kWh, display_month = main.kWh_calc(int(one_kWh), int(month))
         base_bill = main.NG_kVA_price_calc(int(base_amp),int(month))
@@ -452,20 +450,20 @@ if page == '九州電力_スマートビジネスプランC':
         df_kWh_NG = df_kWh_NG.astype(int)
         df_kWh_NG_T = df_kWh_NG.T
 
-        base_bill = main.Q_kVA_price_calc(int(base_amp),int(month))
-        kWh_bill, set_bill = main.Q_kVA_set_calc(kWh, int(month), page)
+        base_bill_Q = main.Q_kVA_price_calc(int(base_amp),int(month))
+        kWh_bill_Q, set_bill_Q = main.Q_kVA_set_calc(kWh, int(month), page)
         re_energy_bill = main.re_energy_calc(kWh, int(month))
         fuel_bill_Q, fuel_bills_Q = main.fuel_calc(kWh, int(month), fuel_chenge)
-        kanwa_bill = main.kanwa_calc(kWh, int(month))
+        kanwa_bill_Q = main.kanwa_calc(kWh, int(month))
         
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
-            '基本料金': base_bill,
-            '従量料金': kWh_bill,
-            '特別割': set_bill,
+            '基本料金': base_bill_Q,
+            '従量料金': kWh_bill_Q,
+            '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill
+            '激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -523,6 +521,8 @@ if page == '九州電力_スマートビジネスプランC':
             st.metric("■基本料金半額還元",
                         "１ヵ月適用" if month == "7"  else "適用なし",
                         f'{"{:,.0f}".format(int(base_bill[-2]*0.5))}円オトク' if month == "7"  else 0)
+        
+        st.write(base_bill)
 
         image_path = main.plot_comparison_kWh_graph(df_kWh_NG, df_kWh_Q)
         st.image(image_path)# 画像をStreamlitに表示
@@ -545,3 +545,4 @@ if page == '九州電力_スマートビジネスプランC':
         
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
+
