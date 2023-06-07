@@ -349,6 +349,7 @@ def Q_kVA_set_calc(kWh, month, page):
         unit_price = 23.88
 
         kWh_bill = []
+        kWh = kWh[:-1]
 
         for kWh_value in kWh:
             kWh_bill.append(kWh_value * unit_price)
