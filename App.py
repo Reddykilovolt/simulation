@@ -161,20 +161,20 @@ if page == '九州電力_従量電灯B':
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
 
-        # Excelファイル名
-        output_file = 'output_A_Q.xlsx'
+        # # Excelファイル名
+        # output_file = 'output_A_Q.xlsx'
 
-        # Excel Writerオブジェクトを作成
-        writer = pd.ExcelWriter(output_file)
+        # # Excel Writerオブジェクトを作成
+        # writer = pd.ExcelWriter(output_file)
 
-        # DataFrameをExcelファイルに書き込む
-        df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
-        df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
-        df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
-        df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
+        # # DataFrameをExcelファイルに書き込む
+        # df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
+        # df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
+        # df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
+        # df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
 
-        # Excelファイルを保存
-        writer.save()
+        # # Excelファイルを保存
+        # writer.save()
 
 if page == '九州電力_スマートファミリープラン':
     st.title('料金シミュレーション')
@@ -326,20 +326,20 @@ if page == '九州電力_スマートファミリープラン':
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
 
-        # Excelファイル名
-        output_file = 'output_A_Q.xlsx'
+        # # Excelファイル名
+        # output_file = 'output_A_Q.xlsx'
 
-        # Excel Writerオブジェクトを作成
-        writer = pd.ExcelWriter(output_file)
+        # # Excel Writerオブジェクトを作成
+        # writer = pd.ExcelWriter(output_file)
 
-        # DataFrameをExcelファイルに書き込む
-        df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
-        df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
-        df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
-        df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
+        # # DataFrameをExcelファイルに書き込む
+        # df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
+        # df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
+        # df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
+        # df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
 
-        # Excelファイルを保存
-        writer.save()
+        # # Excelファイルを保存
+        # writer.save()
 
 if page == '九州電力_従量電灯C':
     st.title('料金シミュレーション')
@@ -793,4 +793,3 @@ if page == '九州電力_低圧動力':
 
         # # Excelファイルを保存
         # writer.save()
-
