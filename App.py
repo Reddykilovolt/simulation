@@ -4,7 +4,7 @@ import main
 import os
 import time
 
-plan_menu =['九州電力_従量電灯B','九州電力_スマートファミリープランB','九州電力_従量電灯C','九州電力_スマートビジネスプランC','九州電力_低圧動力']
+plan_menu =['九州電力_従量電灯B','九州電力_スマートファミリープラン','九州電力_従量電灯C','九州電力_スマートビジネスプラン','九州電力_低圧動力']
 start_menu = ['7', '8', '9', '10', '11', '12']
 fuel_menu = ['下降傾向','変化なし','上昇傾向']
 class_menu = ['一般用','業務用']
@@ -37,11 +37,11 @@ if page == '九州電力_従量電灯B':
         data_kWh_NG = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill,
-            '従量料金': kWh_bill,
+            '電力量料金': kWh_bill,
             '特別割': set_kWh_bill,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_NG,
-            '激変緩和': kanwa_bill
+            '政府激変緩和': kanwa_bill
         }
         index = display_month
         df_kWh_NG = pd.DataFrame(data_kWh_NG, index=index)
@@ -59,11 +59,11 @@ if page == '九州電力_従量電灯B':
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill_Q,
-            '従量料金': kWh_bill_Q,
+            '電力量料金': kWh_bill_Q,
             '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill_Q
+            '政府激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -79,7 +79,7 @@ if page == '九州電力_従量電灯B':
             'ガス使用量[㎥]': gas,
             'ガス料金': gas_bill,
             '特別割': set_gas_bill,
-            '激変緩和': gas_kanwa_bill
+            '政府激変緩和': gas_kanwa_bill
         }
         index = display_month
         df_gas_NG = pd.DataFrame(data_gas_NG, index=index)
@@ -99,13 +99,22 @@ if page == '九州電力_従量電灯B':
         gas_comp = gas_NG_sum_before - gas_NG_sum_after
         sum_comp = kWh_comp + gas_comp
 
-        st.markdown("---")
-        st.write(
-            f'2023年{month}月から日本ガスでんきに切り替わると、'
-            f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
-            f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
-            unsafe_allow_html=True
-        )
+        if sum_comp > 0:            
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: red;">{"{:,.0f}".format(-sum_comp)}</span> 円デメリットになります、、</div>',
+                unsafe_allow_html=True
+            )
         st.write(f'( 試算期間は2023年{month}月から2024年3月 )')
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
@@ -151,11 +160,25 @@ if page == '九州電力_従量電灯B':
 
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
-        
 
-if page == '九州電力_スマートファミリープランB':
+        # Excelファイル名
+        output_file = 'output_A_Q.xlsx'
+
+        # Excel Writerオブジェクトを作成
+        writer = pd.ExcelWriter(output_file)
+
+        # DataFrameをExcelファイルに書き込む
+        df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
+        df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
+        df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
+        df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
+
+        # Excelファイルを保存
+        writer.save()
+
+if page == '九州電力_スマートファミリープラン':
     st.title('料金シミュレーション')
-    st.write('九州電力 スマートファミリープランBとの比較')
+    st.write('九州電力 スマートファミリープランとの比較')
     col1, col2 = st.columns(2)
     with col1:
         base_amp = st.number_input('アンペア数(A)', min_value=30, max_value=60, step=10, key='A1')
@@ -167,7 +190,7 @@ if page == '九州電力_スマートファミリープランB':
         gas_class = st.selectbox('ガス用途', class_menu, key='C3')
 
     submit_button = st.button('実行')
-
+    
     if submit_button:
         kWh, display_month = main.kWh_calc(int(one_kWh), int(month))
         base_bill = main.NG_amp_price_calc(int(base_amp),int(month))
@@ -179,11 +202,11 @@ if page == '九州電力_スマートファミリープランB':
         data_kWh_NG = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill,
-            '従量料金': kWh_bill,
+            '電力量料金': kWh_bill,
             '特別割': set_kWh_bill,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_NG,
-            '激変緩和': kanwa_bill
+            '政府激変緩和': kanwa_bill
         }
         index = display_month
         df_kWh_NG = pd.DataFrame(data_kWh_NG, index=index)
@@ -201,11 +224,11 @@ if page == '九州電力_スマートファミリープランB':
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill_Q,
-            '従量料金': kWh_bill_Q,
+            '電力量料金': kWh_bill_Q,
             '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill_Q
+            '政府激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -221,7 +244,7 @@ if page == '九州電力_スマートファミリープランB':
             'ガス使用量[㎥]': gas,
             'ガス料金': gas_bill,
             '特別割': set_gas_bill,
-            '激変緩和': gas_kanwa_bill
+            '政府激変緩和': gas_kanwa_bill
         }
         index = display_month
         df_gas_NG = pd.DataFrame(data_gas_NG, index=index)
@@ -241,13 +264,23 @@ if page == '九州電力_スマートファミリープランB':
         gas_comp = gas_NG_sum_before - gas_NG_sum_after
         sum_comp = kWh_comp + gas_comp
 
-        st.markdown("---")
-        st.write(
-            f'2023年{month}月から日本ガスでんきに切り替わると、'
-            f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
-            f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
-            unsafe_allow_html=True
-        )
+        if sum_comp > 0:            
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: red;">{"{:,.0f}".format(-sum_comp)}</span> 円デメリットになります、、</div>',
+                unsafe_allow_html=True
+            )
+
         st.write(f'( 試算期間は2023年{month}月から2024年3月 )')
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
@@ -268,10 +301,10 @@ if page == '九州電力_スマートファミリープランB':
         st.image(image_path)# 画像をStreamlitに表示
         os.remove(image_path)# 一時的なファイルなので削除
 
-        st.write("■日本ガス_ファミリープランB_試算結果")
+        st.write("■日本ガス_ファミリープラン_試算結果")
         st.write(df_kWh_NG_T)
         st.write('<p style="font-size: 12px; margin-top: -20px;">※特別割 = 日本ガスセット割(電気)</p>', unsafe_allow_html=True)
-        st.write("■九州電力_スマートファミリープランB_試算結果")
+        st.write("■九州電力_スマートファミリープラン_試算結果")
         st.write(df_kWh_Q_T)
         st.write('<p style="font-size: 12px; margin-top: -20px;">※特別割 = 九州電力２年割契約割</p>', unsafe_allow_html=True)
 
@@ -292,6 +325,21 @@ if page == '九州電力_スマートファミリープランB':
 
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
+
+        # Excelファイル名
+        output_file = 'output_A_Q.xlsx'
+
+        # Excel Writerオブジェクトを作成
+        writer = pd.ExcelWriter(output_file)
+
+        # DataFrameをExcelファイルに書き込む
+        df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
+        df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
+        df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
+        df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
+
+        # Excelファイルを保存
+        writer.save()
 
 if page == '九州電力_従量電灯C':
     st.title('料金シミュレーション')
@@ -319,11 +367,11 @@ if page == '九州電力_従量電灯C':
         data_kWh_NG = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill,
-            '従量料金': kWh_bill,
+            '電力量料金': kWh_bill,
             '特別割': set_kWh_bill,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_NG,
-            '激変緩和': kanwa_bill
+            '政府激変緩和': kanwa_bill
         }
         index = display_month
 
@@ -342,11 +390,11 @@ if page == '九州電力_従量電灯C':
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill_Q,
-            '従量料金': kWh_bill_Q,
+            '電力量料金': kWh_bill_Q,
             '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill_Q
+            '政府激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -362,7 +410,7 @@ if page == '九州電力_従量電灯C':
             'ガス使用量[㎥]': gas,
             'ガス料金': gas_bill,
             '特別割': set_gas_bill,
-            '激変緩和': gas_kanwa_bill
+            '政府激変緩和': gas_kanwa_bill
         }
         index = display_month
         df_gas_NG = pd.DataFrame(data_gas_NG, index=index)
@@ -382,13 +430,23 @@ if page == '九州電力_従量電灯C':
         gas_comp = gas_NG_sum_before - gas_NG_sum_after
         sum_comp = kWh_comp + gas_comp
 
-        st.markdown("---")
-        st.write(
-            f'2023年{month}月から日本ガスでんきに切り替わると、'
-            f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
-            f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
-            unsafe_allow_html=True
-        )
+        if sum_comp > 0:            
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: red;">{"{:,.0f}".format(-sum_comp)}</span> 円デメリットになります、、</div>',
+                unsafe_allow_html=True
+            )
+
         st.write(f'( 試算期間は2023年{month}月から2024年3月 )')
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
@@ -434,9 +492,24 @@ if page == '九州電力_従量電灯C':
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
 
-if page == '九州電力_スマートビジネスプランC':
+        # # Excelファイル名
+        # output_file = 'output_kVA_NG.xlsx'
+
+        # # Excel Writerオブジェクトを作成
+        # writer = pd.ExcelWriter(output_file)
+
+        # # DataFrameをExcelファイルに書き込む
+        # df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
+        # df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
+        # df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
+        # df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
+
+        # # Excelファイルを保存
+        # writer.save()
+
+if page == '九州電力_スマートビジネスプラン':
     st.title('料金シミュレーション')
-    st.write('九州電力 スマートビジネスプランCとの比較')
+    st.write('九州電力 スマートビジネスプランとの比較')
     col1, col2 = st.columns(2)
     with col1:
         base_amp = st.number_input('契約容量(kVA)', min_value=6, max_value=50, value = 12, step=1, key='A1')
@@ -460,11 +533,11 @@ if page == '九州電力_スマートビジネスプランC':
         data_kWh_NG = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill,
-            '従量料金': kWh_bill,
+            '電力量料金': kWh_bill,
             '特別割': set_kWh_bill,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_NG,
-            '激変緩和': kanwa_bill
+            '政府激変緩和': kanwa_bill
         }
         index = display_month
 
@@ -483,11 +556,11 @@ if page == '九州電力_スマートビジネスプランC':
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill_Q,
-            '従量料金': kWh_bill_Q,
+            '電力量料金': kWh_bill_Q,
             '特別割': set_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill_Q
+            '政府激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -503,7 +576,7 @@ if page == '九州電力_スマートビジネスプランC':
             'ガス使用量[㎥]': gas,
             'ガス料金': gas_bill,
             '特別割': set_gas_bill,
-            '激変緩和': gas_kanwa_bill
+            '政府激変緩和': gas_kanwa_bill
         }
         index = display_month
         df_gas_NG = pd.DataFrame(data_gas_NG, index=index)
@@ -523,13 +596,23 @@ if page == '九州電力_スマートビジネスプランC':
         gas_comp = gas_NG_sum_before - gas_NG_sum_after
         sum_comp = kWh_comp + gas_comp
 
-        st.markdown("---")
-        st.write(
-            f'2023年{month}月から日本ガスでんきに切り替わると、'
-            f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
-            f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
-            unsafe_allow_html=True
-        )
+        if sum_comp > 0:            
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: red;">{"{:,.0f}".format(-sum_comp)}</span> 円デメリットになります、、</div>',
+                unsafe_allow_html=True
+            )
+
         st.write(f'( 試算期間は2023年{month}月から2024年3月 )')
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
@@ -574,6 +657,21 @@ if page == '九州電力_スマートビジネスプランC':
 
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
+        
+        # # Excelファイル名
+        # output_file = 'output_kVA_Q.xlsx'
+
+        # # Excel Writerオブジェクトを作成
+        # writer = pd.ExcelWriter(output_file)
+
+        # # DataFrameをExcelファイルに書き込む
+        # df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
+        # df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
+        # df_gas_NG_T.to_excel(writer, sheet_name='Sheet3', index=False)
+        # df_total_T.to_excel(writer, sheet_name='Sheet4', index=False)
+
+        # # Excelファイルを保存
+        # writer.save()
 
 if page == '九州電力_低圧動力':
     st.title('料金シミュレーション')
@@ -600,10 +698,10 @@ if page == '九州電力_低圧動力':
         data_kWh_NG = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill,
-            '従量料金': kWh_bill,
+            '電力量料金': kWh_bill,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_NG,
-            '激変緩和': kanwa_bill
+            '政府激変緩和': kanwa_bill
         }
         index = display_month
         df_kWh_NG = pd.DataFrame(data_kWh_NG, index=index)
@@ -621,10 +719,10 @@ if page == '九州電力_低圧動力':
         data_kWh_Q = {
             '電気使用量[kWh]': kWh,
             '基本料金': base_bill_Q,
-            '従量料金': kWh_bill_Q,
+            '電力量料金': kWh_bill_Q,
             '再エネ賦課金': re_energy_bill,
             '燃調費': fuel_bill_Q,
-            '激変緩和': kanwa_bill_Q
+            '政府激変緩和': kanwa_bill_Q
         }
         index = display_month
         df_kWh_Q = pd.DataFrame(data_kWh_Q, index=index)
@@ -639,13 +737,23 @@ if page == '九州電力_低圧動力':
 
         sum_comp = kWh_comp
 
-        st.markdown("---")
-        st.write(
-            f'2023年{month}月から日本ガスでんきに切り替わると、'
-            f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
-            f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
-            unsafe_allow_html=True
-        )
+        if sum_comp > 0:            
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: blue;">{"{:,.0f}".format(sum_comp)}</span> 円オトクになります!</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.markdown("---")
+            st.write(
+                f'2023年{month}月から日本ガスでんきに切り替わると、'
+                f'<div style="background-color: #cce5ff; padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 20px;">'
+                f'<span style="font-size: 32px; color: red;">{"{:,.0f}".format(-sum_comp)}</span> 円デメリットになります、、</div>',
+                unsafe_allow_html=True
+            )
+
         st.write(f'( 試算期間は2023年{month}月から2024年3月 )')
         st.markdown("<br>", unsafe_allow_html=True)
         col1, col2 = st.columns(2)
@@ -672,3 +780,17 @@ if page == '九州電力_低圧動力':
 
         st.write(f'■燃調費の推移({fuel_chenge}想定)')
         main.fuel_vision(fuel_chenge, page)#燃調費グラフ表示
+
+        # # Excelファイル名
+        # output_file = 'output_kW.xlsx'
+
+        # # Excel Writerオブジェクトを作成
+        # writer = pd.ExcelWriter(output_file)
+
+        # # DataFrameをExcelファイルに書き込む
+        # df_kWh_NG_T.to_excel(writer, sheet_name='Sheet1', index=False)
+        # df_kWh_Q_T.to_excel(writer, sheet_name='Sheet2', index=False)
+
+        # # Excelファイルを保存
+        # writer.save()
+
