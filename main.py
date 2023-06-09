@@ -18,7 +18,7 @@ font_property = FontProperties(fname=font_path)
 
 #kWhを1カ月単位から任意の期間のkWhを算出する
 def kWh_calc(one_kWh, month):
-    kWh_chenge = [1.00,1.25,1.17,0.91,0.86,0.99,1.43,1.31,1.12]
+    kWh_chenge = [1.00,1.25,1.17,0.91,0.86,0.99,1.23,1.31,1.22]
     start_index = month - 7
     kWh_chenge_select = kWh_chenge[start_index]
     kWh_chenge = [x / kWh_chenge_select for x in kWh_chenge]
@@ -32,7 +32,7 @@ def kWh_calc(one_kWh, month):
 
 #㎥を1カ月単位から任意の期間の㎥を算出する
 def gas_calc(one_gas, month):
-    gas_chenge = [1.00,0.89,0.89,1.00,1.22,1.67,2.22,2.00,1.78]
+    gas_chenge = [1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00,1.00]
     start_index = month - 7
     gas_chenge_select = gas_chenge[start_index]
     gas_chenge = [x / gas_chenge_select for x in gas_chenge]
