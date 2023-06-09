@@ -7,7 +7,7 @@ import time
 plan_menu =['九州電力_従量電灯B','九州電力_スマートファミリープラン','九州電力_従量電灯C','九州電力_スマートビジネスプラン','九州電力_低圧動力']
 start_menu = ['7', '8', '9', '10', '11', '12']
 fuel_menu = ['下降傾向','変化なし','上昇傾向']
-class_menu = ['一般用','業務用']
+class_menu = ['一般','業務用選択約款']
 
 page = st.sidebar.selectbox('Menu select', plan_menu)
 time.sleep(0.5)
@@ -22,7 +22,7 @@ if page == '九州電力_従量電灯B':
     with col2:
         month = st.selectbox('供給開始月', start_menu, key='A2')
         one_gas = st.number_input('供給開始月のガス使用量(㎥)', min_value=5, max_value=200, value = 20, step=5, key='B2')
-        gas_class = st.selectbox('ガス用途', class_menu, key='C3')
+        gas_class = st.selectbox('ガス料金', class_menu, key='C3')
 
     submit_button = st.button('実行')
 
