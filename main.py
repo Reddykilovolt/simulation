@@ -397,11 +397,11 @@ def re_energy_calc(kWh, month):
 def fuel_calc(kWh, month, fuel_chenge):
     
     if fuel_chenge == "上昇傾向":
-        fuel_bills = [6.17, 5.49, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
+        fuel_bills = [5.49, 5.49, 5.75, 6.0, 6.25, 6.5, 6.75, 7.0, 7.25]
     elif fuel_chenge == "変化なし":
-        fuel_bills = [6.17, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49]
+        fuel_bills = [5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49]
     elif fuel_chenge == "下降傾向":
-        fuel_bills = [6.17, 5.49, 5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0]
+        fuel_bills = [5.49, 4.18, 3.25, 2.60, 2.53, 2.47, 2.42, 2.36, 2.31]
     else:
         raise ValueError("無効な fuel_chenge の値です。")
     
@@ -463,11 +463,11 @@ def fuel_vision(fuel_chenge, page):
                     7.55, 6.80, 6.17, 5.49]
     
     if fuel_chenge == "上昇傾向":
-        fuel_bills_NG_2 = [5.49, 6.0, 6.3, 6.6, 7.0, 7.3, 7.5, 8.0]
+        fuel_bills_NG_2 = [5.49, 5.75, 6.0, 6.25, 6.5, 6.75, 7.0, 7.25]
     if fuel_chenge == "変化なし":
         fuel_bills_NG_2 = [5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49]
     if fuel_chenge == "下降傾向":
-        fuel_bills_NG_2 = [5.0, 4.5, 4.0, 3.5, 3.0, 2.5, 2.0, 2.0]
+        fuel_bills_NG_2 = [4.18, 3.25, 2.60, 2.53, 2.47, 2.42, 2.36, 2.31]
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=x_1, y=fuel_bills_NG_1, mode='lines', line=dict(color='blue'), name='日本ガス_過去実績'))
@@ -644,5 +644,7 @@ def plot_comparison_total_graph(df_kWh_NG_T, df_kWh_Q_T, df_gas_NG_T, display_mo
     fig.savefig(image_path)
 
     return image_path, df_total
+
+
 
 
