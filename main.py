@@ -154,7 +154,7 @@ def Q_kVA_price_calc(kVA, month):
 #九電低圧電力の基本料金算出
 def Q_kW_price_calc(kW, month):
     kW_list = []
-    kW = 1023.23 * kW
+    kW = 1023.23 * kW * 0.95
     kW_list = [kW] * 9
     start_index = month - 7
     kW_list = kW_list[start_index:]
@@ -401,7 +401,7 @@ def fuel_calc(kWh, month, fuel_chenge):
     elif fuel_chenge == "変化なし":
         fuel_bills = [5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49]
     elif fuel_chenge == "下降傾向":
-        fuel_bills = [5.49, 4.18, 3.25, 2.60, 2.53, 2.47, 2.42, 2.36, 2.31]
+        fuel_bills = [5.49, 4.19, 3.26, 2.61, 2.54, 2.48, 2.43, 2.37, 2.33]
     else:
         raise ValueError("無効な fuel_chenge の値です。")
     
@@ -467,7 +467,7 @@ def fuel_vision(fuel_chenge, page):
     if fuel_chenge == "変化なし":
         fuel_bills_NG_2 = [5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49, 5.49]
     if fuel_chenge == "下降傾向":
-        fuel_bills_NG_2 = [4.18, 3.25, 2.60, 2.53, 2.47, 2.42, 2.36, 2.31]
+        fuel_bills_NG_2 = [4.19, 3.26, 2.61, 2.54, 2.48, 2.43, 2.37, 2.33]
     
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=x_1, y=fuel_bills_NG_1, mode='lines', line=dict(color='blue'), name='日本ガス_過去実績'))
